@@ -81,7 +81,8 @@ const SchedulingPanel: React.FC<SchedulingPanelProps> = ({ schedulingInfo, onClo
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="card border-purple-500 bg-purple-900/20"
+      className="card border-purple-500 bg-purple-900/20 p-4 sm:p-6 max-w-full overflow-y-auto"
+      style={{ maxHeight: '90vh' }}
     >
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-xl font-semibold text-gradient">Scheduling Detected!</h3>
@@ -203,17 +204,17 @@ const SchedulingPanel: React.FC<SchedulingPanelProps> = ({ schedulingInfo, onClo
               </label>
             </div>
 
-            <div className="flex space-x-3">
+            <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 mt-6">
               <button
                 onClick={handleConfirm}
-                className="btn-primary flex items-center space-x-2"
+                className="btn-primary flex-1 py-3 text-lg"
               >
-                <CheckIcon className="w-4 h-4" />
-                <span>Create Reminder</span>
+                <CheckIcon className="w-5 h-5 mr-2" />
+                Create Reminder
               </button>
               <button
                 onClick={handleCancel}
-                className="btn-secondary"
+                className="btn-secondary flex-1 py-3 text-lg"
               >
                 Cancel
               </button>
