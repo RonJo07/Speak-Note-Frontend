@@ -179,7 +179,7 @@ const Login: React.FC = () => {
             {/* Login Method Toggle */}
             <div className="flex space-x-1 bg-dark-700 p-1 rounded-lg mb-6">
               <button
-                onClick={() => { setLoginMethod('password'); resetForm(); }}
+                onClick={() => { setLoginMethod('password'); }}
                 className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
                   loginMethod === 'password'
                     ? 'bg-purple-600 text-white'
@@ -189,7 +189,7 @@ const Login: React.FC = () => {
                 Password
               </button>
               <button
-                onClick={() => { setLoginMethod('otp'); resetForm(); }}
+                onClick={() => { setLoginMethod('otp'); }}
                 className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
                   loginMethod === 'otp'
                     ? 'bg-purple-600 text-white'
