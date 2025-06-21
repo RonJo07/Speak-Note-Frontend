@@ -113,17 +113,23 @@ const Login: React.FC = () => {
       const success = await requestRegistrationOTP(email);
       console.log('Registration OTP request result:', success);
       
+      // Force the state to true regardless of the response
+      console.log('Setting registrationOtpSent to true');
+      setRegistrationOtpSent(true);
+      
+      // Add alert for debugging
+      alert('OTP field should now be visible! Check if the input field appears below.');
+      
       if (success) {
-        console.log('Setting registrationOtpSent to true');
-        setRegistrationOtpSent(true);
         toast.success('Verification code sent to your email!');
       } else {
-        console.log('Registration OTP request failed');
         toast.error('Failed to send verification code. Please try again.');
       }
     } catch (error) {
       console.error('Error requesting registration OTP:', error);
       toast.error('Failed to send verification code. Please try again.');
+      // Still show the OTP field even if there's an error
+      setRegistrationOtpSent(true);
     } finally {
       setIsLoading(false);
     }
@@ -527,9 +533,15 @@ const Login: React.FC = () => {
                     <p>Debug: mode = {mode}</p>
                     <button 
                       onClick={() => setRegistrationOtpSent(true)}
-                      className="bg-blue-500 text-white px-2 py-1 rounded text-xs mt-1"
+                      className="bg-blue-500 text-white px-2 py-1 rounded text-xs mt-1 mr-1"
                     >
                       Test: Show OTP Field
+                    </button>
+                    <button 
+                      onClick={() => setRegistrationOtpSent(false)}
+                      className="bg-red-500 text-white px-2 py-1 rounded text-xs mt-1"
+                    >
+                      Test: Hide OTP Field
                     </button>
                   </div>
                 )}
