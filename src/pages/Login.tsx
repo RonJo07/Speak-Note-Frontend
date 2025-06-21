@@ -99,12 +99,26 @@ const Login: React.FC = () => {
       toast.error('Please fill in all fields');
       return;
     }
-    setIsLoading(true);
-    const success = await requestRegistrationOTP(email);
-    if (success) {
-      setRegistrationOtpSent(true);
+    
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast.error('Please enter a valid email address');
+      return;
     }
-    setIsLoading(false);
+    
+    setIsLoading(true);
+    try {
+      const success = await requestRegistrationOTP(email);
+      if (success) {
+        setRegistrationOtpSent(true);
+        toast.success('Verification code sent to your email!');
+      }
+    } catch (error) {
+      console.error('Error requesting registration OTP:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleRegisterWithOTP = async (e: React.FormEvent) => {
@@ -113,12 +127,26 @@ const Login: React.FC = () => {
       toast.error('Please fill in all fields');
       return;
     }
-    setIsLoading(true);
-    const success = await registerWithOTP(email, otp, fullName);
-    if (success) {
-      navigate('/dashboard');
+    
+    // Validate OTP format
+    if (otp.length !== 6 || !/^\d{6}$/.test(otp)) {
+      toast.error('Please enter a valid 6-digit verification code');
+      return;
     }
-    setIsLoading(false);
+    
+    setIsLoading(true);
+    try {
+      const success = await registerWithOTP(email, otp, fullName);
+      if (success) {
+        toast.success('Account created successfully! Welcome to SpeakNote Remind!');
+        navigate('/dashboard');
+      }
+    } catch (error) {
+      console.error('Error registering with OTP:', error);
+      // Error message is already handled by the AuthContext
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const resetForm = () => {
@@ -526,45 +554,83 @@ const Login: React.FC = () => {
                     </button>
                   </form>
                 ) : (
-                  <form onSubmit={handleRegisterWithOTP}>
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-dark-300 mb-2">
-                        Enter 6-digit verification code
-                      </label>
-                      <div className="relative">
-                        <KeyIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-dark-400" />
-                        <input
-                          type="text"
-                          value={otp}
-                          onChange={(e) => setOtp(e.target.value)}
-                          className="input-field pl-10"
-                          placeholder="000000"
-                          maxLength={6}
-                          required
-                        />
+                  <div className="space-y-4">
+                    {/* Success Message */}
+                    <div className="bg-green-900/20 border border-green-500/30 rounded-lg p-4 mb-4">
+                      <div className="flex items-center">
+                        <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center mr-3">
+                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="text-green-400 font-medium">Verification code sent!</p>
+                          <p className="text-green-300 text-sm">Check your email for the 6-digit code</p>
+                        </div>
                       </div>
-                      <p className="text-sm text-dark-400 mt-2">
-                        We sent a verification code to {email}
-                      </p>
                     </div>
-                    <div className="flex space-x-3">
-                      <button
-                        type="button"
-                        onClick={() => { setRegistrationOtpSent(false); setOtp(''); }}
-                        className="flex-1 bg-dark-600 hover:bg-dark-500 text-white py-3 px-4 rounded-lg font-medium transition-colors"
-                      >
-                        <ArrowLeftIcon className="w-5 h-5 inline mr-2" />
-                        Back
-                      </button>
-                      <button
-                        type="submit"
-                        disabled={isLoading}
-                        className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-3 px-4 rounded-lg font-medium transition-colors disabled:opacity-50"
-                      >
-                        {isLoading ? 'Creating account...' : 'Create Account'}
-                      </button>
-                    </div>
-                  </form>
+
+                    <form onSubmit={handleRegisterWithOTP}>
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium text-dark-300 mb-2">
+                          Enter 6-digit verification code
+                        </label>
+                        <div className="relative">
+                          <KeyIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-dark-400" />
+                          <input
+                            type="text"
+                            value={otp}
+                            onChange={(e) => {
+                              // Only allow numbers and limit to 6 digits
+                              const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                              setOtp(value);
+                            }}
+                            className="input-field pl-10 text-center text-lg font-mono tracking-widest"
+                            placeholder="000000"
+                            maxLength={6}
+                            required
+                            autoFocus
+                          />
+                        </div>
+                        <p className="text-sm text-dark-400 mt-2">
+                          We sent a verification code to <span className="text-purple-400 font-medium">{email}</span>
+                        </p>
+                      </div>
+
+                      {/* Resend OTP Option */}
+                      <div className="mb-4 text-center">
+                        <button
+                          type="button"
+                          onClick={handleRequestRegistrationOTP}
+                          disabled={isLoading}
+                          className="text-sm text-purple-400 hover:text-purple-300 transition-colors disabled:opacity-50"
+                        >
+                          Didn't receive the code? Resend
+                        </button>
+                      </div>
+
+                      <div className="flex space-x-3">
+                        <button
+                          type="button"
+                          onClick={() => { 
+                            setRegistrationOtpSent(false); 
+                            setOtp(''); 
+                          }}
+                          className="flex-1 bg-dark-600 hover:bg-dark-500 text-white py-3 px-4 rounded-lg font-medium transition-colors"
+                        >
+                          <ArrowLeftIcon className="w-5 h-5 inline mr-2" />
+                          Back
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={isLoading || otp.length !== 6}
+                          className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-3 px-4 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {isLoading ? 'Creating account...' : 'Create Account'}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
                 )}
               </div>
             )}
