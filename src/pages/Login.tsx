@@ -130,12 +130,22 @@ const Login: React.FC = () => {
     setOtpSent(false);
     setRegistrationOtpSent(false);
     setLoginMethod('password');
-    setRegisterMethod('password');
   };
 
   const switchMode = (newMode: AuthMode) => {
     setMode(newMode);
     resetForm();
+  };
+
+  const switchRegisterMethod = (method: RegisterMethod) => {
+    setRegisterMethod(method);
+    setEmail('');
+    setPassword('');
+    setConfirmPassword('');
+    setOtp('');
+    setFullName('');
+    setOtpSent(false);
+    setRegistrationOtpSent(false);
   };
 
   return (
@@ -358,7 +368,7 @@ const Login: React.FC = () => {
             {/* Registration Method Toggle */}
             <div className="flex space-x-1 bg-dark-700 p-1 rounded-lg mb-6">
               <button
-                onClick={() => { setRegisterMethod('password'); resetForm(); }}
+                onClick={() => { switchRegisterMethod('password'); }}
                 className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
                   registerMethod === 'password'
                     ? 'bg-purple-600 text-white'
@@ -368,7 +378,7 @@ const Login: React.FC = () => {
                 Password
               </button>
               <button
-                onClick={() => { setRegisterMethod('otp'); resetForm(); }}
+                onClick={() => { switchRegisterMethod('otp'); }}
                 className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
                   registerMethod === 'otp'
                     ? 'bg-purple-600 text-white'
