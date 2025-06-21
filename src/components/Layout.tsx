@@ -83,13 +83,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 px-2 sm:px-4 py-4 w-full max-w-7xl mx-auto">
+      <main className="flex-1 px-2 sm:px-4 py-4 w-full max-w-7xl mx-auto mb-16 md:mb-0">
         {children}
       </main>
 
       {/* Mobile Navigation */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-dark-800 border-t border-dark-700 z-50">
-        <div className="flex justify-around py-2">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-dark-800/80 backdrop-blur-sm border-t border-dark-700 z-50">
+        <div className="flex justify-around py-1">
           {navigation.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.href;
@@ -98,14 +98,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <Link
                 key={item.name}
                 to={item.href}
-                className={`flex flex-col items-center p-2 rounded-md transition-colors ${
+                className={`flex flex-col items-center p-2 rounded-md transition-colors w-full ${
                   isActive
                     ? 'text-purple-400'
                     : 'text-dark-300 hover:text-white'
                 }`}
               >
-                <Icon className="w-6 h-6" />
-                <span className="text-xs mt-1">{item.name}</span>
+                <Icon className="w-5 h-5 mb-1" />
+                <span className="text-xs">{item.name}</span>
               </Link>
             );
           })}

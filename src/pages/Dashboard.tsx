@@ -61,14 +61,14 @@ const Dashboard: React.FC = () => {
               className="card"
             >
               {/* Input Tabs */}
-              <div className="flex space-x-1 mb-6 bg-dark-700 p-1 rounded-lg">
+              <div className="flex flex-wrap space-x-1 mb-6 bg-dark-700 p-1 rounded-lg">
                 {tabs.map((tab) => {
                   const Icon = tab.icon;
                   return (
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id as any)}
-                      className={`flex-1 flex items-center justify-center space-x-2 py-3 px-4 rounded-md transition-all duration-200 ${
+                      className={`flex-1 flex items-center justify-center space-x-2 py-2 px-2 sm:py-3 sm:px-4 rounded-md transition-all duration-200 text-sm sm:text-base ${
                         activeTab === tab.id
                           ? 'bg-purple-600 text-white shadow-lg'
                           : 'text-dark-300 hover:text-white hover:bg-dark-600'

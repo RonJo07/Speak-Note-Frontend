@@ -14,14 +14,11 @@ import axios from 'axios';
 
 const Settings: React.FC = () => {
   const { user, updateUser } = useAuth();
-  const getInitialDarkMode = () => {
+  const [isDarkMode, setIsDarkMode] = useState(() => {
     const stored = localStorage.getItem('darkMode');
     if (stored !== null) return stored === 'true';
-    // If not set, use system preference
     return window.matchMedia('(prefers-color-scheme: dark)').matches;
-  };
-
-  const [isDarkMode, setIsDarkMode] = useState(getInitialDarkMode);
+  });
   const [notifications, setNotifications] = useState({
     email: true,
     push: true,
@@ -65,15 +62,16 @@ const Settings: React.FC = () => {
   };
 
   const requestNotificationPermission = async () => {
-    if ('Notification' in window) {
-      const permission = await Notification.requestPermission();
-      if (permission === 'granted') {
-        new Notification('Notifications enabled!');
-      } else {
-        toast.error('Notification permission denied');
-      }
+    if (!('Notification' in window)) {
+      toast.error('This browser does not support desktop notification');
+      return;
+    }
+    const permission = await Notification.requestPermission();
+    if (permission === 'granted') {
+      toast.success('Notifications enabled!');
+      setNotifications(prev => ({ ...prev, push: true }));
     } else {
-      toast.error('Browser does not support notifications');
+      toast.error('Notification permission denied.');
     }
   };
 
@@ -168,10 +166,7 @@ const Settings: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-white font-medium">Push Notifications</h3>
-                  <p className="text-sm text-dark-300">Receive browser notifications</p>
-                  <button className="btn-secondary mt-2" onClick={requestNotificationPermission}>
-                    Test Notification
-                  </button>
+                  <p className="text-sm text-dark-300">Receive alerts in your browser</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -199,6 +194,18 @@ const Settings: React.FC = () => {
                   <div className="w-11 h-6 bg-dark-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
                 </label>
               </div>
+
+              {/* Manual Permission Button */}
+              {Notification && Notification.permission !== 'granted' && (
+                <div className="pt-2">
+                  <p className="text-sm text-dark-300 mb-2">
+                    Browser notifications are currently {Notification.permission}.
+                  </p>
+                  <button onClick={requestNotificationPermission} className="btn-secondary w-full">
+                    Enable Notifications
+                  </button>
+                </div>
+              )}
             </div>
           </motion.div>
 

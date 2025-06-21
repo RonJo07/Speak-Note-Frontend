@@ -50,6 +50,10 @@ const ImageInput: React.FC<ImageInputProps> = ({ onSchedulingDetected }) => {
 
   const startCamera = async () => {
     try {
+      // Stop any existing stream first
+      if (streamRef.current) {
+        stopCamera();
+      }
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { facingMode: 'environment' } 
       });
@@ -60,7 +64,7 @@ const ImageInput: React.FC<ImageInputProps> = ({ onSchedulingDetected }) => {
       }
     } catch (error) {
       console.error('Error accessing camera:', error);
-      toast.error('Failed to access camera. Please check permissions.');
+      toast.error('Camera not available or permission denied. Please check your browser settings.');
     }
   };
 
@@ -215,7 +219,7 @@ const ImageInput: React.FC<ImageInputProps> = ({ onSchedulingDetected }) => {
                 className="btn-accent flex items-center space-x-2 mx-auto"
               >
                 <CameraIcon className="w-5 h-5" />
-                <span>Capture with Camera</span>
+                <span>Open Camera</span>
               </button>
             </div>
           </div>

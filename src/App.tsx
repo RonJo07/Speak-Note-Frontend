@@ -40,7 +40,7 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 };
 
 const SplashScreen: React.FC = () => (
-  <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-dark-900 text-white">
+  <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-dark-900 text-white">
     <div className="w-24 h-24 bg-purple-600 rounded-2xl flex items-center justify-center mb-6 animate-bounce">
       <span className="text-4xl font-bold text-white">SN</span>
     </div>
