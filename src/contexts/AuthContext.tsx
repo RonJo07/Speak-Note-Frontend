@@ -113,7 +113,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setLoading(true);
       const formData = new FormData();
       formData.append('email', email);
-      await axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:8000'}/auth/request-login-otp`, formData);
+      const response = await axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:8000'}/auth/request-login-otp`, formData);
+      
+      // Handle development mode where OTP is returned directly
+      if (response.data.development_mode && response.data.otp) {
+        toast.success(`Development Mode: Your OTP is ${response.data.otp}`, { duration: 10000 });
+      }
+      
       return true;
     } catch (error: any) {
       console.error('Request OTP failed:', error);
