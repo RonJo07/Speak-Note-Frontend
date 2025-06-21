@@ -18,9 +18,10 @@ interface SchedulingPanelProps {
     confidence?: number;
   };
   onClose: () => void;
+  editOnly?: boolean;
 }
 
-const SchedulingPanel: React.FC<SchedulingPanelProps> = ({ schedulingInfo, onClose }) => {
+const SchedulingPanel: React.FC<SchedulingPanelProps> = ({ schedulingInfo, onClose, editOnly = false }) => {
   const [title, setTitle] = useState(schedulingInfo.suggested_title || 'Untitled Reminder');
   const [isImportant, setIsImportant] = useState(false);
   const { createReminder } = useReminders();
@@ -81,7 +82,9 @@ const SchedulingPanel: React.FC<SchedulingPanelProps> = ({ schedulingInfo, onClo
       className="card border-2 border-purple-500/20"
     >
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-xl font-semibold text-gradient">Schedule Reminder</h3>
+        <h3 className="text-xl font-semibold text-gradient">
+          {editOnly ? 'Edit Reminder' : 'Schedule Reminder'}
+        </h3>
         <button
           onClick={onClose}
           className="p-2 hover:bg-dark-600 rounded-lg transition-colors"
@@ -166,7 +169,7 @@ const SchedulingPanel: React.FC<SchedulingPanelProps> = ({ schedulingInfo, onClo
             className="flex-1 flex items-center justify-center space-x-2 bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-lg transition-colors"
           >
             <CheckIcon className="w-5 h-5" />
-            <span>Create Reminder</span>
+            <span>{editOnly ? 'Update Reminder' : 'Create Reminder'}</span>
           </button>
           <button
             onClick={onClose}
