@@ -109,13 +109,21 @@ const Login: React.FC = () => {
     
     setIsLoading(true);
     try {
+      console.log('Requesting registration OTP for:', email);
       const success = await requestRegistrationOTP(email);
+      console.log('Registration OTP request result:', success);
+      
       if (success) {
+        console.log('Setting registrationOtpSent to true');
         setRegistrationOtpSent(true);
         toast.success('Verification code sent to your email!');
+      } else {
+        console.log('Registration OTP request failed');
+        toast.error('Failed to send verification code. Please try again.');
       }
     } catch (error) {
       console.error('Error requesting registration OTP:', error);
+      toast.error('Failed to send verification code. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -511,7 +519,22 @@ const Login: React.FC = () => {
             {/* OTP Registration */}
             {registerMethod === 'otp' && (
               <div className="space-y-4">
-                {!registrationOtpSent ? (
+                {/* Debug Info - Remove this in production */}
+                {process.env.NODE_ENV === 'development' && (
+                  <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-2 text-xs">
+                    <p>Debug: registrationOtpSent = {registrationOtpSent.toString()}</p>
+                    <p>Debug: registerMethod = {registerMethod}</p>
+                    <p>Debug: mode = {mode}</p>
+                    <button 
+                      onClick={() => setRegistrationOtpSent(true)}
+                      className="bg-blue-500 text-white px-2 py-1 rounded text-xs mt-1"
+                    >
+                      Test: Show OTP Field
+                    </button>
+                  </div>
+                )}
+                
+                {registrationOtpSent === false ? (
                   <form onSubmit={handleRequestRegistrationOTP}>
                     <div>
                       <label className="block text-sm font-medium text-dark-300 mb-2">
