@@ -247,7 +247,7 @@ const Register: React.FC = () => {
             </div>
             <div className="text-center">
               <div className="text-lg mb-1">📷</div>
-              <span>Image OCR</span>
+              <span>AI Extraction</span>
             </div>
           </div>
         </motion.div>

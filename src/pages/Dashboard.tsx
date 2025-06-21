@@ -28,7 +28,7 @@ const Dashboard: React.FC = () => {
   const tabs = [
     { id: 'voice', name: 'Voice', icon: MicrophoneIcon, color: 'text-purple-400' },
     { id: 'text', name: 'Text', icon: DocumentTextIcon, color: 'text-lavender-400' },
-    { id: 'image', name: 'Image', icon: PhotoIcon, color: 'text-accent-primary' }
+    { id: 'image', name: 'AI Extraction', icon: PhotoIcon, color: 'text-accent-primary' }
   ];
 
   const handleSchedulingDetected = (info: any) => {

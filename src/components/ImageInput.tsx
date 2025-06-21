@@ -10,6 +10,7 @@ import {
 } from '@heroicons/react/24/outline';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { useReminders } from '../contexts/ReminderContext';
 
 interface ImageInputProps {
   onSchedulingDetected: (info: any) => void;
@@ -21,6 +22,7 @@ const ImageInput: React.FC<ImageInputProps> = ({ onSchedulingDetected }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [ocrResult, setOcrResult] = useState<any>(null);
   const [schedulingInfo, setSchedulingInfo] = useState<any>(null);
+  const { createReminder } = useReminders();
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -50,12 +52,11 @@ const ImageInput: React.FC<ImageInputProps> = ({ onSchedulingDetected }) => {
 
   const startCamera = async () => {
     try {
-      // Stop any existing stream first
       if (streamRef.current) {
         stopCamera();
       }
       const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'environment' } 
+        video: { facingMode: { exact: 'environment' } } 
       });
       
       if (videoRef.current) {
@@ -123,12 +124,18 @@ const ImageInput: React.FC<ImageInputProps> = ({ onSchedulingDetected }) => {
       setSchedulingInfo(scheduling_info);
       
       if (scheduling_info && scheduling_info.confidence > 0.3) {
-        onSchedulingDetected({
-          ...scheduling_info,
-          source: 'image',
-          originalText: text,
-          imageUrl: image_url
-        });
+        const reminderData = {
+          title: scheduling_info.suggested_title || 'Image Reminder',
+          description: text,
+          scheduled_for: scheduling_info.detected_date ? new Date(scheduling_info.detected_date).toISOString() : new Date().toISOString(),
+          source_type: 'image',
+          original_text: text,
+          confidence_score: scheduling_info.confidence,
+          image_url: image_url,
+        };
+        await createReminder(reminderData);
+      } else {
+        toast.error('Could not detect a clear schedule in the image. Please try again.');
       }
       
       toast.success('Image analysis completed!');
@@ -366,7 +373,7 @@ const ImageInput: React.FC<ImageInputProps> = ({ onSchedulingDetected }) => {
           className="text-center py-8"
         >
           <div className="loading-spinner mx-auto mb-4"></div>
-          <p className="text-dark-300">Analyzing image with OCR...</p>
+          <p className="text-dark-300">Analyzing image with AI Extraction...</p>
         </motion.div>
       )}
     </div>

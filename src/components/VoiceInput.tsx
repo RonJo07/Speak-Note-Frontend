@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { MicrophoneIcon, StopIcon, PlayIcon } from '@heroicons/react/24/outline';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { useReminders } from '../contexts/ReminderContext';
 
 interface VoiceInputProps {
   onSchedulingDetected: (info: any) => void;
@@ -19,6 +20,7 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onSchedulingDetected }) => {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const { createReminder } = useReminders();
 
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
@@ -98,11 +100,17 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onSchedulingDetected }) => {
       setConfidence(conf);
       
       if (scheduling_info && scheduling_info.confidence > 0.3) {
-        onSchedulingDetected({
-          ...scheduling_info,
-          source: 'voice',
-          originalText: text
-        });
+        const reminderData = {
+          title: scheduling_info.suggested_title || 'Voice Reminder',
+          description: text,
+          scheduled_for: scheduling_info.detected_date ? new Date(scheduling_info.detected_date).toISOString() : new Date().toISOString(),
+          source_type: 'voice',
+          original_text: text,
+          confidence_score: scheduling_info.confidence,
+        };
+        await createReminder(reminderData);
+      } else {
+        toast.error('Could not detect a clear schedule in your voice. Please try again.');
       }
       
       toast.success('Voice analysis completed!');

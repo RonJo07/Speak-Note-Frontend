@@ -14,6 +14,8 @@ interface AuthContextType {
   isAuthenticated: boolean;
   loading: boolean;
   login: (email: string, password: string) => Promise<boolean>;
+  requestLoginOTP: (email: string) => Promise<boolean>;
+  loginWithOTP: (email: string, otp: string) => Promise<boolean>;
   register: (email: string, password: string, fullName?: string) => Promise<boolean>;
   logout: () => void;
   updateUser: (userData: Partial<User>) => void;
@@ -106,6 +108,55 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const requestLoginOTP = async (email: string): Promise<boolean> => {
+    try {
+      setLoading(true);
+      const formData = new FormData();
+      formData.append('email', email);
+      await axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:8000'}/auth/request-login-otp`, formData);
+      return true;
+    } catch (error: any) {
+      console.error('Request OTP failed:', error);
+      const message = error.response?.data?.detail || 'Failed to send login code.';
+      toast.error(message);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loginWithOTP = async (email: string, otp: string): Promise<boolean> => {
+    try {
+      setLoading(true);
+      const formData = new FormData();
+      formData.append('email', email);
+      formData.append('otp', otp);
+      
+      const response = await axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:8000'}/auth/login-with-otp`, formData);
+      const { access_token } = response.data;
+
+      // Store token and user info
+      localStorage.setItem('token', access_token);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
+      
+      const userResponse = await axios.get(`${process.env.REACT_APP_API_URL || 'http://localhost:8000'}/auth/me`);
+      const userData = userResponse.data;
+      
+      setUser(userData);
+      localStorage.setItem('user', JSON.stringify(userData));
+      
+      toast.success('Successfully logged in!');
+      return true;
+    } catch (error: any) {
+      console.error('Login with OTP failed:', error);
+      const message = error.response?.data?.detail || 'Login failed. Please try again.';
+      toast.error(message);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const register = async (email: string, password: string, fullName?: string): Promise<boolean> => {
     try {
       setLoading(true);
@@ -157,6 +208,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isAuthenticated: !!user,
     loading,
     login,
+    requestLoginOTP,
+    loginWithOTP,
     register,
     logout,
     updateUser
