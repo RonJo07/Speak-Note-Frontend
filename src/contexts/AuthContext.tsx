@@ -16,6 +16,8 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<boolean>;
   requestLoginOTP: (email: string) => Promise<boolean>;
   loginWithOTP: (email: string, otp: string) => Promise<boolean>;
+  requestRegistrationOTP: (email: string) => Promise<boolean>;
+  registerWithOTP: (email: string, otp: string, fullName: string) => Promise<boolean>;
   register: (email: string, password: string, fullName?: string) => Promise<boolean>;
   logout: () => void;
   updateUser: (userData: Partial<User>) => void;
@@ -163,6 +165,59 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const requestRegistrationOTP = async (email: string): Promise<boolean> => {
+    try {
+      setLoading(true);
+      const formData = new FormData();
+      formData.append('email', email);
+      const response = await axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:8000'}/auth/request-registration-otp`, formData);
+      
+      // Handle development mode where OTP is returned directly
+      if (response.data.development_mode && response.data.otp) {
+        toast.success(`Development Mode: Your registration OTP is ${response.data.otp}`, { duration: 10000 });
+      }
+      
+      return true;
+    } catch (error: any) {
+      console.error('Request registration OTP failed:', error);
+      const message = error.response?.data?.detail || 'Failed to send registration code.';
+      toast.error(message);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const registerWithOTP = async (email: string, otp: string, fullName: string): Promise<boolean> => {
+    try {
+      setLoading(true);
+      const formData = new FormData();
+      formData.append('email', email);
+      formData.append('otp', otp);
+      formData.append('full_name', fullName);
+      
+      const response = await axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:8000'}/auth/register-with-otp`, formData);
+      const { access_token, user: userData } = response.data;
+
+      // Store token and user info
+      localStorage.setItem('token', access_token);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
+      
+      setUser(userData);
+      localStorage.setItem('user', JSON.stringify(userData));
+      
+      toast.success('Account created and logged in successfully!');
+      return true;
+    } catch (error: any) {
+      console.error('Registration with OTP failed:', error);
+      const message = error.response?.data?.detail || 'Registration failed. Please try again.';
+      toast.error(message);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const register = async (email: string, password: string, fullName?: string): Promise<boolean> => {
     try {
       setLoading(true);
@@ -216,6 +271,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     login,
     requestLoginOTP,
     loginWithOTP,
+    requestRegistrationOTP,
+    registerWithOTP,
     register,
     logout,
     updateUser
