@@ -13,6 +13,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 type AuthMode = 'login' | 'register';
+type RegisterMethod = 'password' | 'otp';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -21,12 +22,15 @@ const Login: React.FC = () => {
   const [fullName, setFullName] = useState('');
   const [mode, setMode] = useState<AuthMode>('login');
   const [loginMethod, setLoginMethod] = useState<'password' | 'otp'>('password');
+  const [registerMethod, setRegisterMethod] = useState<RegisterMethod>('password');
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   const [registrationOtpSent, setRegistrationOtpSent] = useState(false);
   
-  const { login, requestLoginOTP, loginWithOTP, requestRegistrationOTP, registerWithOTP, loading } = useAuth();
+  const { login, requestLoginOTP, loginWithOTP, register, requestRegistrationOTP, registerWithOTP, loading } = useAuth();
   const navigate = useNavigate();
 
   const handlePasswordLogin = async (e: React.FormEvent) => {
@@ -71,6 +75,24 @@ const Login: React.FC = () => {
     setIsLoading(false);
   };
 
+  const handlePasswordRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password || !confirmPassword || !fullName) {
+      toast.error('Please fill in all fields');
+      return;
+    }
+    if (password !== confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+    setIsLoading(true);
+    const success = await register(email, password, fullName);
+    if (success) {
+      navigate('/dashboard');
+    }
+    setIsLoading(false);
+  };
+
   const handleRequestRegistrationOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !fullName) {
@@ -102,11 +124,13 @@ const Login: React.FC = () => {
   const resetForm = () => {
     setEmail('');
     setPassword('');
+    setConfirmPassword('');
     setOtp('');
     setFullName('');
     setOtpSent(false);
     setRegistrationOtpSent(false);
     setLoginMethod('password');
+    setRegisterMethod('password');
   };
 
   const switchMode = (newMode: AuthMode) => {
@@ -331,8 +355,33 @@ const Login: React.FC = () => {
             transition={{ delay: 0.3 }}
             className="card"
           >
-            {!registrationOtpSent ? (
-              <form onSubmit={handleRequestRegistrationOTP} className="space-y-4">
+            {/* Registration Method Toggle */}
+            <div className="flex space-x-1 bg-dark-700 p-1 rounded-lg mb-6">
+              <button
+                onClick={() => { setRegisterMethod('password'); resetForm(); }}
+                className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                  registerMethod === 'password'
+                    ? 'bg-purple-600 text-white'
+                    : 'text-dark-300 hover:text-white hover:bg-dark-600'
+                }`}
+              >
+                Password
+              </button>
+              <button
+                onClick={() => { setRegisterMethod('otp'); resetForm(); }}
+                className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                  registerMethod === 'otp'
+                    ? 'bg-purple-600 text-white'
+                    : 'text-dark-300 hover:text-white hover:bg-dark-600'
+                }`}
+              >
+                Email Code
+              </button>
+            </div>
+
+            {/* Password Registration */}
+            {registerMethod === 'password' && (
+              <form onSubmit={handlePasswordRegister} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-dark-300 mb-2">
                     Full Name
@@ -365,54 +414,149 @@ const Login: React.FC = () => {
                     />
                   </div>
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-dark-300 mb-2">
+                    Password
+                  </label>
+                  <div className="relative">
+                    <LockClosedIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-dark-400" />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="input-field pl-10 pr-10"
+                      placeholder="Create a password"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-dark-400 hover:text-white transition-colors"
+                    >
+                      {showPassword ? <EyeSlashIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-dark-300 mb-2">
+                    Confirm Password
+                  </label>
+                  <div className="relative">
+                    <LockClosedIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-dark-400" />
+                    <input
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="input-field pl-10 pr-10"
+                      placeholder="Confirm your password"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-dark-400 hover:text-white transition-colors"
+                    >
+                      {showConfirmPassword ? <EyeSlashIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
+                    </button>
+                  </div>
+                </div>
                 <button
                   type="submit"
                   disabled={isLoading}
                   className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 px-4 rounded-lg font-medium transition-colors disabled:opacity-50"
                 >
-                  {isLoading ? 'Sending...' : 'Send Verification Code'}
+                  {isLoading ? 'Creating account...' : 'Create Account'}
                 </button>
               </form>
-            ) : (
-              <form onSubmit={handleRegisterWithOTP}>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-dark-300 mb-2">
-                    Enter 6-digit verification code
-                  </label>
-                  <div className="relative">
-                    <KeyIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-dark-400" />
-                    <input
-                      type="text"
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value)}
-                      className="input-field pl-10"
-                      placeholder="000000"
-                      maxLength={6}
-                      required
-                    />
-                  </div>
-                  <p className="text-sm text-dark-400 mt-2">
-                    We sent a verification code to {email}
-                  </p>
-                </div>
-                <div className="flex space-x-3">
-                  <button
-                    type="button"
-                    onClick={() => { setRegistrationOtpSent(false); setOtp(''); }}
-                    className="flex-1 bg-dark-600 hover:bg-dark-500 text-white py-3 px-4 rounded-lg font-medium transition-colors"
-                  >
-                    <ArrowLeftIcon className="w-5 h-5 inline mr-2" />
-                    Back
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isLoading}
-                    className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-3 px-4 rounded-lg font-medium transition-colors disabled:opacity-50"
-                  >
-                    {isLoading ? 'Creating account...' : 'Create Account'}
-                  </button>
-                </div>
-              </form>
+            )}
+
+            {/* OTP Registration */}
+            {registerMethod === 'otp' && (
+              <div className="space-y-4">
+                {!registrationOtpSent ? (
+                  <form onSubmit={handleRequestRegistrationOTP}>
+                    <div>
+                      <label className="block text-sm font-medium text-dark-300 mb-2">
+                        Full Name
+                      </label>
+                      <div className="relative">
+                        <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-dark-400" />
+                        <input
+                          type="text"
+                          value={fullName}
+                          onChange={(e) => setFullName(e.target.value)}
+                          className="input-field pl-10"
+                          placeholder="Enter your full name"
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div className="mt-4">
+                      <label className="block text-sm font-medium text-dark-300 mb-2">
+                        Email Address
+                      </label>
+                      <div className="relative">
+                        <EnvelopeIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-dark-400" />
+                        <input
+                          type="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          className="input-field pl-10"
+                          placeholder="Enter your email"
+                          required
+                        />
+                      </div>
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={isLoading}
+                      className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 px-4 rounded-lg font-medium transition-colors disabled:opacity-50 mt-4"
+                    >
+                      {isLoading ? 'Sending...' : 'Send Verification Code'}
+                    </button>
+                  </form>
+                ) : (
+                  <form onSubmit={handleRegisterWithOTP}>
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-dark-300 mb-2">
+                        Enter 6-digit verification code
+                      </label>
+                      <div className="relative">
+                        <KeyIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-dark-400" />
+                        <input
+                          type="text"
+                          value={otp}
+                          onChange={(e) => setOtp(e.target.value)}
+                          className="input-field pl-10"
+                          placeholder="000000"
+                          maxLength={6}
+                          required
+                        />
+                      </div>
+                      <p className="text-sm text-dark-400 mt-2">
+                        We sent a verification code to {email}
+                      </p>
+                    </div>
+                    <div className="flex space-x-3">
+                      <button
+                        type="button"
+                        onClick={() => { setRegistrationOtpSent(false); setOtp(''); }}
+                        className="flex-1 bg-dark-600 hover:bg-dark-500 text-white py-3 px-4 rounded-lg font-medium transition-colors"
+                      >
+                        <ArrowLeftIcon className="w-5 h-5 inline mr-2" />
+                        Back
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={isLoading}
+                        className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-3 px-4 rounded-lg font-medium transition-colors disabled:opacity-50"
+                      >
+                        {isLoading ? 'Creating account...' : 'Create Account'}
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
             )}
           </motion.div>
         )}
